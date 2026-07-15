@@ -1,7 +1,7 @@
 import SearchBar from "../SearchBar/SearchBar";
 import css from "./App.module.css";
 import MovieGrid from "../MovieGrid/MovieGrid";
-import { Toaster } from "react-hot-toast";
+import toast,{ Toaster } from "react-hot-toast";
 import fetchMovies from "../../services/movieService";
 import { useEffect, useState } from "react";
 import type { Movie } from "../../types/movie";
@@ -31,6 +31,14 @@ function App() {
   const handleMovieClick = (movie: Movie) => {
     setModalContent(movie);
   };
+  useEffect(()=>{
+    function checkMovieExistence () {
+      if(isSuccess && data?.results.length === 0){
+         toast.error("No movies found for your request.")
+      }
+    }
+    checkMovieExistence()
+  },[data?.results.length, isSuccess])
   const totalPages = data?.total_pages ?? 0;
   return (
     <div className={css.app}>
