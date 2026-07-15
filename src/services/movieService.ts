@@ -8,6 +8,7 @@ export default async function fetchMovies(settings: {
   query: string;
   page: number;
 }): Promise<FetchMoviesData> {
+  
   const BASE_URL: string = "https://api.themoviedb.org/3/";
   const URL_ENDPOINT: string = "search/movie";
   const API_KEY: string = import.meta.env.VITE_TMDB_TOKEN;

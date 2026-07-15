@@ -3,7 +3,7 @@ import css from "./App.module.css";
 import MovieGrid from "../MovieGrid/MovieGrid";
 import { Toaster } from "react-hot-toast";
 import fetchMovies from "../../services/movieService";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Movie } from "../../types/movie";
 import Loader from "../Loader/Loader";
 import ErrorMessage from "../ErrorMessage/ErrorMessage";
@@ -13,12 +13,12 @@ import Pagination from "../Pagination/Pagination";
 
 function App() {
   const [modalContent, setModalContent] = useState<Movie | null>(null);
-  const [topic, setTopic] = useState<string | null>(null);
+  const [topic, setTopic] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const { data, isError, isLoading, isSuccess } = useQuery({
     queryKey: ["movies", topic, currentPage],
-    queryFn: () => fetchMovies({ query: topic as string, page: currentPage }),
-    enabled: topic !== null,
+    queryFn: () => fetchMovies({ query: topic, page: currentPage }),
+    enabled: topic !== '',
     placeholderData: keepPreviousData
   });
   const setIsModalMenuClose = () => {
