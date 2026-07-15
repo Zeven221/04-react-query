@@ -1,42 +1,37 @@
 import SearchBar from "../SearchBar/SearchBar";
 import css from "./App.module.css";
 import MovieGrid from "../MovieGrid/MovieGrid";
-import toast, { Toaster } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 import fetchMovies from "../../services/movieService";
 import { useState } from "react";
 import type { Movie } from "../../types/movie";
 import Loader from "../Loader/Loader";
 import ErrorMessage from "../ErrorMessage/ErrorMessage";
 import MovieModal from "../MovieModal/MovieModal";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import Pagination from "../Pagination/Pagination";
+
 function App() {
-  const [movies, setMovies] = useState<Movie[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isError, setIsError] = useState(false);
   const [modalContent, setModalContent] = useState<Movie | null>(null);
+  const [topic, setTopic] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const { data, isError, isLoading, isSuccess } = useQuery({
+    queryKey: ["movies", topic, currentPage],
+    queryFn: () => fetchMovies({ query: topic as string, page: currentPage }),
+    enabled: topic !== null,
+    placeholderData: keepPreviousData
+  });
   const setIsModalMenuClose = () => {
-    setModalContent(null)
-  }
+    setModalContent(null);
+  };
+  const handleSearch = async (topic: string) => {
+    setTopic(topic);
+    setCurrentPage(1);
+  };
   const handleMovieClick = (movie: Movie) => {
-    setModalContent(movie)
+    setModalContent(movie);
   };
-  const handleSearch = async (query: string) => {
-    setMovies([]);
-    setIsError(false);
-    try {
-      setIsLoading(true);
-      const response = await fetchMovies({ query });
-      if (!response.length) {
-        toast.error("No movies found for your request.");
-        return
-      }
-      setMovies(response);
-      
-    } catch {
-      setIsError(true);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const totalPages = data?.total_pages ?? 0;
   return (
     <div className={css.app}>
       <Toaster />
@@ -46,9 +41,10 @@ function App() {
       {isError && <ErrorMessage />}
       {isLoading && <Loader />}
       <SearchBar onSubmit={handleSearch}></SearchBar>
-      {movies.length > 0 && (
-        <MovieGrid movies={movies} onSelect={handleMovieClick}/>
+      { data! && data.results.length > 0 && (
+        <MovieGrid movies={data.results} onSelect={handleMovieClick} />
       )}
+      {isSuccess && totalPages > 1 && (<Pagination totalPages={totalPages} currentPage={currentPage} onPageChange={setCurrentPage}></Pagination>)}
     </div>
   );
 }
